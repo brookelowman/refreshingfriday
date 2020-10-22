@@ -1,0 +1,115 @@
+---
+title: "fResh_2020_07_31_penguins"
+author: "Brooke L Wright"
+date: "7/29/2020"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+##### R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+## Getting Started
+
+Welcome to our first session! This week we'll use the *Palmer penguin* data set. More info available here: https://allisonhorst.github.io/palmerpenguins/
+
+
+First, set the working directory and install and load the packages we'll use:  
+palmerpenguins  
+tidyverse  
+knitr
+
+```{r get ready, echo=TRUE, message=FALSE, warning=FALSE}
+setwd("C:/Users/brooke.wright/Documents/BWRIGHT_NOAA/R_fridays") #set the working directory
+
+#install.packages("palmerpenguins")
+
+library(palmerpenguins)
+library(tidyverse)
+library(knitr)
+library(magick)
+library(cowplot)
+
+```
+
+Next, preview the data.
+```{r preview data}
+head(penguins)
+
+```
+
+## Plot
+
+Let's make a boxplot of the body mass by species and sex. Males of all three species tend to be larger than females, and Gentoo penguins are larger than Adelie and Chinstrap penguins.
+```{r body mass by species and sex}
+ggplot(data = penguins, aes(x = sex, y = body_mass_g, fill = species)) +
+  geom_boxplot(alpha = 0.5) +
+   scale_fill_manual(values = c("darkorange","purple","cyan4")) +
+  theme_minimal() +
+  labs(title = "Penguins",
+       x = "Sex",
+       y = "Mass (g)") 
+
+```
+
+## Summary Table
+
+Let's make a summary table of flipper lengths.
+```{r flipper length summary table}
+penguins %>%
+  group_by(species) %>%
+  summarize(MeanFlipperLength = mean(flipper_length_mm, na.rm = TRUE)
+            , MinFlipperLength = min(flipper_length_mm, na.rm = TRUE)
+            , MaxFlipperLength = max(flipper_length_mm, na.rm = TRUE)
+  ) %>% 
+  kable()
+
+```
+
+## Another Plot
+
+Let's look at the bill length relative to bill depth across species.
+```{r bill shape, out.width = "\\textwidth", fig.height = 8}
+billplot <- 
+  ggplot(data = penguins, aes(x = bill_depth_mm, y = bill_length_mm, color = species, shape = species)) +
+  geom_point(aes(color = species), alpha = 1) +
+  scale_color_manual(values = c("darkorange","purple","cyan4"), guide = FALSE) +
+  scale_shape(guide = FALSE) +
+  coord_cartesian(xlim = c(min(penguins$bill_depth_mm, na.rm = TRUE)-1, max(penguins$bill_depth_mm, na.rm = TRUE)+1)) +
+  theme_minimal() +
+  labs(title = "Penguins",
+       x = "Bill Depth (mm)",
+       y = "Bill Length (mm)") +
+  theme(plot.margin = margin(t = 30, r = 10, b = 10, l = 10, unit = "pt"))
+
+ggdraw() +
+  draw_plot(billplot) +
+  draw_image("penguins.png", x = 0.3, y = 0.38, scale = .4)
+
+
+```
+
+
+## Bonus
+
+Fun stuff I just discovered. Such a time saver for exploring correlations!
+```{r look at correlations using the GGally package, message=FALSE, warning=FALSE, echo = TRUE}
+# install.packages("GGally")
+library(GGally)
+penguins %>%
+  select(species, body_mass_g, ends_with("_mm")) %>%
+  GGally::ggpairs(aes(color = species)) +
+  scale_colour_manual(values = c("darkorange","purple","cyan4")) +
+  scale_fill_manual(values = c("darkorange","purple","cyan4"))
+```
+
+
